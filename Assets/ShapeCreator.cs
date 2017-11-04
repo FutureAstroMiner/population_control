@@ -4,13 +4,6 @@ using UnityEngine;
 
 public class ShapeCreator : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    [HideInInspector]
+    public List<Vector3> points = new List<Vector3>();
 }
