@@ -4,8 +4,6 @@ using UnityEngine;
 using UnityEditor;
 
 [CustomEditor(typeof(ShapeCreator))]
-//taken from https://www.youtube.com/watch?v=bPO7_JNWNmI
-//part 2 https://www.youtube.com/watch?v=ew4NtzkXj8U
 public class ShapeEditor : Editor
 {
 
@@ -13,8 +11,8 @@ public class ShapeEditor : Editor
     SelectionInfo selectionInfo;
     bool needsRepaint;
 
-    //Called when any input on the scene
-    private void OnSceneGUI()
+
+    void OnSceneGUI()
     {
         Event guiEvent = Event.current;
 
@@ -22,7 +20,7 @@ public class ShapeEditor : Editor
         {
             Draw();
         }
-        else if (guiEvent.type == EventType.layout)
+        else if (guiEvent.type == EventType.Layout)
         {
             HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
         }
@@ -32,30 +30,28 @@ public class ShapeEditor : Editor
             if (needsRepaint)
             {
                 HandleUtility.Repaint();
-                needsRepaint = false;
             }
         }
-
     }
 
     void HandleInput(Event guiEvent)
     {
         Ray mouseRay = HandleUtility.GUIPointToWorldRay(guiEvent.mousePosition);
         float drawPlaneHeight = 0;
-        float distToDrawPlane = (drawPlaneHeight - mouseRay.origin.y) / mouseRay.direction.y;
-        Vector3 mousePosition = mouseRay.GetPoint(distToDrawPlane);
+        float dstToDrawPlane = (drawPlaneHeight - mouseRay.origin.y) / mouseRay.direction.y;
+        Vector3 mousePosition = mouseRay.GetPoint(dstToDrawPlane);
 
-        if (guiEvent.type == EventType.mouseDown && guiEvent.button == 0 && guiEvent.modifiers == EventModifiers.None)
+        if (guiEvent.type == EventType.MouseDown && guiEvent.button == 0 && guiEvent.modifiers == EventModifiers.None)
         {
             HandleLeftMouseDown(mousePosition);
         }
 
-        if (guiEvent.type == EventType.mouseUp && guiEvent.button == 0 && guiEvent.modifiers == EventModifiers.None)
+        if (guiEvent.type == EventType.MouseUp && guiEvent.button == 0 && guiEvent.modifiers == EventModifiers.None)
         {
             HandleLeftMouseUp(mousePosition);
         }
 
-        if (guiEvent.type == EventType.mouseDrag && guiEvent.button == 0 && guiEvent.modifiers == EventModifiers.None)
+        if (guiEvent.type == EventType.MouseDrag && guiEvent.button == 0 && guiEvent.modifiers == EventModifiers.None)
         {
             HandleLeftMouseDrag(mousePosition);
         }
@@ -65,7 +61,6 @@ public class ShapeEditor : Editor
             UpdateMouseOverInfo(mousePosition);
         }
 
-
     }
 
     void HandleLeftMouseDown(Vector3 mousePosition)
@@ -74,7 +69,7 @@ public class ShapeEditor : Editor
         {
             int newPointIndex = (selectionInfo.mouseIsOverLine) ? selectionInfo.lineIndex + 1 : shapeCreator.points.Count;
             Undo.RecordObject(shapeCreator, "Add point");
-            shapeCreator.points.Insert(newPointIndex,mousePosition);
+            shapeCreator.points.Insert(newPointIndex, mousePosition);
             selectionInfo.pointIndex = newPointIndex;
         }
 
@@ -87,7 +82,6 @@ public class ShapeEditor : Editor
     {
         if (selectionInfo.pointIsSelected)
         {
-            //use the mouse pos at the start of the move to enable undo of moving a point.
             shapeCreator.points[selectionInfo.pointIndex] = selectionInfo.positionAtStartOfDrag;
             Undo.RecordObject(shapeCreator, "Move point");
             shapeCreator.points[selectionInfo.pointIndex] = mousePosition;
@@ -96,6 +90,7 @@ public class ShapeEditor : Editor
             selectionInfo.pointIndex = -1;
             needsRepaint = true;
         }
+
     }
 
     void HandleLeftMouseDrag(Vector3 mousePosition)
@@ -105,6 +100,7 @@ public class ShapeEditor : Editor
             shapeCreator.points[selectionInfo.pointIndex] = mousePosition;
             needsRepaint = true;
         }
+
     }
 
     void UpdateMouseOverInfo(Vector3 mousePosition)
@@ -118,6 +114,7 @@ public class ShapeEditor : Editor
                 break;
             }
         }
+
         if (mouseOverPointIndex != selectionInfo.pointIndex)
         {
             selectionInfo.pointIndex = mouseOverPointIndex;
@@ -137,7 +134,6 @@ public class ShapeEditor : Editor
             float closestLineDst = shapeCreator.handleRadius;
             for (int i = 0; i < shapeCreator.points.Count; i++)
             {
-                //preventing the pointer going out of the array.
                 Vector3 nextPointInShape = shapeCreator.points[(i + 1) % shapeCreator.points.Count];
                 float dstFromMouseToLine = HandleUtility.DistancePointToLineSegment(mousePosition.ToXZ(), shapeCreator.points[i].ToXZ(), nextPointInShape.ToXZ());
                 if (dstFromMouseToLine < closestLineDst)
@@ -150,7 +146,7 @@ public class ShapeEditor : Editor
             if (selectionInfo.lineIndex != mouseOverLineIndex)
             {
                 selectionInfo.lineIndex = mouseOverLineIndex;
-                selectionInfo.mouseIsOverPoint = mouseOverLineIndex != -1;
+                selectionInfo.mouseIsOverLine = mouseOverLineIndex != -1;
                 needsRepaint = true;
             }
         }
@@ -171,6 +167,7 @@ public class ShapeEditor : Editor
                 Handles.color = Color.black;
                 Handles.DrawDottedLine(shapeCreator.points[i], nextPoint, 4);
             }
+
             if (i == selectionInfo.pointIndex)
             {
                 Handles.color = (selectionInfo.pointIsSelected) ? Color.black : Color.red;
@@ -181,9 +178,10 @@ public class ShapeEditor : Editor
             }
             Handles.DrawSolidDisc(shapeCreator.points[i], Vector3.up, shapeCreator.handleRadius);
         }
+        needsRepaint = false;
     }
 
-    private void OnEnable()
+    void OnEnable()
     {
         shapeCreator = target as ShapeCreator;
         selectionInfo = new SelectionInfo();
@@ -196,8 +194,8 @@ public class ShapeEditor : Editor
         public bool pointIsSelected;
         public Vector3 positionAtStartOfDrag;
 
-        //For inserting a point on a line
         public int lineIndex = -1;
         public bool mouseIsOverLine;
     }
+
 }
