@@ -60,9 +60,9 @@ public class ShapeEditor : Editor
             HandleLeftMouseDrag(mousePosition);
         }
 
-        if (selectionInfo.pointIsSelected)
+        if (!selectionInfo.pointIsSelected)
         {
-            UpdateMouseOverSelection(mousePosition);
+            UpdateMouseOverInfo(mousePosition);
         }
 
 
@@ -78,6 +78,7 @@ public class ShapeEditor : Editor
         }
 
         selectionInfo.pointIsSelected = true;
+        selectionInfo.positionAtStartOfDrag = mousePosition;
         needsRepaint = true;
     }
 
@@ -85,6 +86,11 @@ public class ShapeEditor : Editor
     {
         if (selectionInfo.pointIsSelected)
         {
+            //use the mouse pos at the start of the move to enable undo of moving a point.
+            shapeCreator.points[selectionInfo.pointIndex] = selectionInfo.positionAtStartOfDrag;
+            Undo.RecordObject(shapeCreator, "Move point");
+            shapeCreator.points[selectionInfo.pointIndex] = mousePosition;
+
             selectionInfo.pointIsSelected = false;
             selectionInfo.pointIndex = -1;
             needsRepaint = true;
@@ -100,7 +106,7 @@ public class ShapeEditor : Editor
         }
     }
 
-    void UpdateMouseOverSelection(Vector3 mousePosition)
+    void UpdateMouseOverInfo(Vector3 mousePosition)
     {
         int mouseOverPointIndex = -1;
         for (int i = 0; i < shapeCreator.points.Count; i++)
@@ -151,5 +157,6 @@ public class ShapeEditor : Editor
         public int pointIndex = -1;
         public bool mouseIsOverPoint;
         public bool pointIsSelected;
+        public Vector3 positionAtStartOfDrag;
     }
 }
